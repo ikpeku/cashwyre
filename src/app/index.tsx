@@ -1,43 +1,125 @@
-import { Link } from "expo-router";
-import React from "react";
-import { Text, View } from "react-native";
+import axios from "axios";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Text, View, Image, FlatList, Animated, useWindowDimensions} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { products } from "dummy";
+import { IProduct } from "types/product";
+import { asignProduct } from "utils/lowercaseproduct";
 
 export default function Page() {
   return (
     <View className="flex flex-1">
       <Header />
       <Content />
-      <Footer />
     </View>
   );
 }
 
 function Content() {
+  const [data, setData] = useState<IProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const {height, width} = useWindowDimensions()
+
+// const itemSize = height * 0.1
+const itemheight = 90 ;
+
+  const scrollY = useRef(new Animated.Value(0)).current
+
+  const fetctData = useCallback(async () => {
+    try {
+
+
+      const transformedProducts = asignProduct(products);
+      // const response = await axios.get("https://api.restful-api.dev/objects")
+
+      // if(response.data) {
+
+      //   const transformedProducts = asignProduct(response.data);
+   
+        setData(transformedProducts);
+      // }
+    } catch (error) {
+      const transformedProducts = asignProduct(products);
+
+      setData(transformedProducts);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetctData();
+  }, []);
+
+  if (isLoading) {
+    return <Text>loading</Text>;
+  }
+
   return (
     <View className="flex-1">
-      <View className="py-12 md:py-24 lg:py-32 xl:py-48">
+      <View className="py-5 md:py-24 lg:py-32 xl:py-48">
         <View className="px-4 md:px-6">
-          <View className="flex flex-col items-center gap-4 text-center">
-            <Text
-              role="heading"
-              className="text-3xl text-center native:text-5xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl"
-            >
-              Welcome to Project ACME
-            </Text>
-            <Text className="mx-auto max-w-[700px] text-lg text-center text-gray-500 md:text-xl dark:text-gray-400">
-              Discover and collaborate on amce. Explore our services now.
-            </Text>
+          <View>
 
-            <View className="gap-4">
-              <Link
-                suppressHighlighting
-                className="flex h-9 items-center justify-center overflow-hidden rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 web:shadow ios:shadow transition-colors hover:bg-gray-900/90 active:bg-gray-400/90 web:focus-visible:outline-none web:focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
-                href="/"
-              >
-                Explore
-              </Link>
-            </View>
+
+            <Animated.FlatList
+              data={data}
+              onScroll={Animated.event([
+                {
+                  nativeEvent: {
+                    contentOffset: {
+                      y: scrollY
+                    }
+                  }
+                }
+              ], {
+                    useNativeDriver: true
+                })}
+            renderItem={({ item, index }) => {
+
+              const inputRange = [
+                -1, 0, itemheight * (index) , itemheight * (index + 0.5)
+                // -1, 0, height  * index , height * (index + 0.5)
+              ]
+              
+              const opacityRange = [
+                -1, 0, itemheight * (index) , itemheight * (index + 0.5)
+                // -1, 0, height * index , height * (index + 0.5)
+              ]
+
+const scale  = scrollY.interpolate({
+  inputRange,
+  outputRange: [1,1,1,0]
+})
+
+
+const opacity  = scrollY.interpolate({
+  inputRange: opacityRange,
+  outputRange: [1,1,1,0]
+})
+
+
+
+
+
+              return(
+                <Animated.View style={{
+                  // width: width * 0.9,
+                  height: itemheight,
+                  transform: [{scale}],
+                  opacity
+                }}> 
+
+                  <RenderData key={index} {...item} />
+                </Animated.View>
+            )}}
+              contentContainerClassName="gap-4"    
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+              keyExtractor={(key) => key.id.toString()}
+            />
+
           </View>
         </View>
       </View>
@@ -49,47 +131,81 @@ function Header() {
   const { top } = useSafeAreaInsets();
   return (
     <View style={{ paddingTop: top }}>
-      <View className="px-4 lg:px-6 h-14 flex items-center flex-row justify-between ">
-        <Link className="font-bold flex-1 items-center justify-center" href="/">
-          ACME
-        </Link>
-        <View className="flex flex-row gap-4 sm:gap-6">
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="/"
-          >
-            About
-          </Link>
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="/"
-          >
-            Product
-          </Link>
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="/"
-          >
-            Pricing
-          </Link>
-        </View>
+      <View className=" h-14  flex-row bg-black">
+        <Image
+          source={{
+            uri: "https://www.cashwyre.io/img/logo-new-1.3cc3c4e5.png",
+          }}
+          className="h-full  w-1/2"
+          resizeMode="contain"
+        />
       </View>
     </View>
   );
 }
 
-function Footer() {
-  const { bottom } = useSafeAreaInsets();
+// Id, Name, Colour, Capacity, Generation, Screen size
+const RenderData = ({ data, name, id }: IProduct) => {
+  const screenSize = data?.["screen size"] ?? undefined;
+
+ 
+
+  // shadow-slate-400 shadow-md transition-shadow
   return (
-    <View
-      className="flex shrink-0 bg-gray-100 native:hidden"
-      style={{ paddingBottom: bottom }}
+    <View className="w-full border p-3 rounded bg-black bg-opacity-80  h-full " 
+    style={{
+      shadowColor: "#000",
+      shadowRadius: 20,
+      shadowOpacity: 1,
+      shadowOffset: {
+        height: 10,
+        width: 0
+      }
+    }}
     >
-      <View className="py-6 flex-1 items-start px-4 md:px-6 ">
-        <Text className={"text-center text-gray-700"}>
-          © {new Date().getFullYear()} Me
-        </Text>
-      </View>
+      {id && (
+        <View className="flex-row gap-3">
+          <Text className="text-white">ID: </Text>
+          <Text className="text-slate-400">{id}</Text>
+        </View>
+      )}
+
+      {name && (
+        <View className="flex-row gap-3">
+          <Text className="text-white">Name: </Text>
+          <Text className="text-slate-400">{name}</Text>
+        </View>
+      )}
+
+      {data?.color && (
+        <View className="flex-row gap-3">
+          <Text className="text-white">Colour: </Text>
+          <Text className="text-slate-400">{data?.color}</Text>
+        </View>
+      )}
+
+      {data?.capacity && (
+        <View className="flex-row gap-3">
+          <Text className="text-white">Capacity: </Text>
+          <Text className="text-slate-400">{data?.capacity}</Text>
+        </View>
+      )}
+
+      {data?.generation && (
+        <View className="flex-row gap-3">
+          <Text className="text-white">Generation: </Text>
+          <Text className="text-slate-400">{data?.generation}</Text>
+        </View>
+      )}
+
+      {screenSize && (
+        <View className="flex-row gap-3">
+          <Text className="text-white">Screen Size: </Text>
+          <Text className="text-slate-400">{screenSize}</Text>
+        </View>
+      )}
     </View>
   );
-}
+};
+
+

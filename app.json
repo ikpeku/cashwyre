@@ -15,7 +15,15 @@
         }
       ]
     ],
-    "name": "eno",
-    "slug": "eno"
+    "name": "Cashwyre",
+    "slug": "Cashwyre",
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
+
+
+
+
+
