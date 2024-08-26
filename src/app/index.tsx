@@ -1,10 +1,19 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Text, View, Image, FlatList, Animated, useWindowDimensions} from "react-native";
+import {
+  Text,
+  View,
+  Image,
+  Animated,
+
+} from "react-native";
+
+import loader from "../../assets/empty.json"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { products } from "dummy";
 import { IProduct } from "types/product";
 import { asignProduct } from "utils/lowercaseproduct";
+import Loader from "components/loader";
 
 export default function Page() {
   return (
@@ -19,30 +28,26 @@ function Content() {
   const [data, setData] = useState<IProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const {height, width} = useWindowDimensions()
+  const itemheight = 90;
 
-// const itemSize = height * 0.1
-const itemheight = 90 ;
-
-  const scrollY = useRef(new Animated.Value(0)).current
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const fetctData = useCallback(async () => {
     try {
-
-
-      const transformedProducts = asignProduct(products);
-      // const response = await axios.get("https://api.restful-api.dev/objects")
-
-      // if(response.data) {
-
-      //   const transformedProducts = asignProduct(response.data);
-   
+      const response = await axios.get("https://api.restful-api.dev/objects");
+      if (response.data) {
+        const transformedProducts = asignProduct(response.data);
         setData(transformedProducts);
-      // }
+       
+      }
     } catch (error) {
+      /**
+       * this is a backup not neccessary
+       * it case the request is exhausted
+       */
       const transformedProducts = asignProduct(products);
-
       setData(transformedProducts);
+   
     } finally {
       setIsLoading(false);
     }
@@ -53,73 +58,82 @@ const itemheight = 90 ;
   }, []);
 
   if (isLoading) {
-    return <Text>loading</Text>;
+    return <Loader type="loader" />;
   }
-
+  // assets/loader.json
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-[#e6e6e6]">
       <View className="py-5 md:py-24 lg:py-32 xl:py-48">
         <View className="px-4 md:px-6">
           <View>
-
-
             <Animated.FlatList
               data={data}
-              onScroll={Animated.event([
+              onScroll={Animated.event(
+                [
+                  {
+                    nativeEvent: {
+                      contentOffset: {
+                        y: scrollY,
+                      },
+                    },
+                  },
+                ],
                 {
-                  nativeEvent: {
-                    contentOffset: {
-                      y: scrollY
-                    }
-                  }
+                  useNativeDriver: true,
                 }
-              ], {
-                    useNativeDriver: true
-                })}
-            renderItem={({ item, index }) => {
+              )}
+              renderItem={({ item, index }) => {
+                const inputRange = [
+                  -1,
+                  0,
+                  itemheight * index,
+                  itemheight * (index + 0.5),
+                 
+                ];
 
-              const inputRange = [
-                -1, 0, itemheight * (index) , itemheight * (index + 0.5)
-                // -1, 0, height  * index , height * (index + 0.5)
-              ]
-              
-              const opacityRange = [
-                -1, 0, itemheight * (index) , itemheight * (index + 0.5)
-                // -1, 0, height * index , height * (index + 0.5)
-              ]
+                const opacityRange = [
+                  -1,
+                  0,
+                  itemheight * index,
+                  itemheight * (index + 0.5),
+                
+                ];
 
-const scale  = scrollY.interpolate({
-  inputRange,
-  outputRange: [1,1,1,0]
-})
+                const scale = scrollY.interpolate({
+                  inputRange,
+                  outputRange: [1, 1, 1, 0],
+                });
 
+                const opacity = scrollY.interpolate({
+                  inputRange: opacityRange,
+                  outputRange: [1, 1, 1, 0],
+                });
 
-const opacity  = scrollY.interpolate({
-  inputRange: opacityRange,
-  outputRange: [1,1,1,0]
-})
-
-
-
-
-
-              return(
-                <Animated.View style={{
-                  // width: width * 0.9,
-                  height: itemheight,
-                  transform: [{scale}],
-                  opacity
-                }}> 
-
-                  <RenderData key={index} {...item} />
-                </Animated.View>
-            )}}
-              contentContainerClassName="gap-4"    
+                return (
+                  <Animated.View
+                    style={{
+                      height: itemheight,
+                      transform: [{ scale }],
+                      opacity,
+                      shadowColor: "#fff",
+                      shadowRadius: 20,
+                      shadowOpacity: 0.7,
+                      shadowOffset: {
+                        height: 10,
+                        width: 0,
+                      },
+                    }}
+                  >
+                    <RenderData key={index} {...item} />
+                  </Animated.View>
+                );
+              }}
+              contentContainerClassName="gap-4"
               showsVerticalScrollIndicator={false}
               bounces={false}
               keyExtractor={(key) => key.id.toString()}
+              ListEmptyComponent={<Loader type="empty" />}
             />
-
           </View>
         </View>
       </View>
@@ -131,7 +145,7 @@ function Header() {
   const { top } = useSafeAreaInsets();
   return (
     <View style={{ paddingTop: top }}>
-      <View className=" h-14  flex-row bg-black">
+      <View className=" h-14  flex-row bg-black p-2">
         <Image
           source={{
             uri: "https://www.cashwyre.io/img/logo-new-1.3cc3c4e5.png",
@@ -148,21 +162,9 @@ function Header() {
 const RenderData = ({ data, name, id }: IProduct) => {
   const screenSize = data?.["screen size"] ?? undefined;
 
- 
-
   // shadow-slate-400 shadow-md transition-shadow
   return (
-    <View className="w-full border p-3 rounded bg-black bg-opacity-80  h-full " 
-    style={{
-      shadowColor: "#000",
-      shadowRadius: 20,
-      shadowOpacity: 1,
-      shadowOffset: {
-        height: 10,
-        width: 0
-      }
-    }}
-    >
+    <View className="w-full border p-3 rounded bg-black bg-opacity-80  h-full ">
       {id && (
         <View className="flex-row gap-3">
           <Text className="text-white">ID: </Text>
@@ -207,5 +209,3 @@ const RenderData = ({ data, name, id }: IProduct) => {
     </View>
   );
 };
-
-

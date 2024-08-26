@@ -1,5 +1,14 @@
 {
   "expo": {
+
+    "version": "1.0.0",
+    "icon": "./assets/appstore.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "center",
+      "backgroundColor": "#e6e6e6"
+    },
+
     "scheme": "acme",
     "userInterfaceStyle": "automatic",
     "orientation": "default",
@@ -19,6 +28,12 @@
     "slug": "Cashwyre",
     "experiments": {
       "typedRoutes": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/appstore.png",
+        "backgroundColor": "#ffffff"
+      }
     }
   }
 }
