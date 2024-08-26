@@ -158,11 +158,10 @@ function Header() {
   );
 }
 
-// Id, Name, Colour, Capacity, Generation, Screen size
+// to display Id, Name, Colour, Capacity, Generation, Screen size
 const RenderData = ({ data, name, id }: IProduct) => {
   const screenSize = data?.["screen size"] ?? undefined;
 
-  // shadow-slate-400 shadow-md transition-shadow
   return (
     <View className="w-full border p-3 rounded bg-black bg-opacity-80  h-full ">
       {id && (
