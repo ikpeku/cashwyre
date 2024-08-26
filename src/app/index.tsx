@@ -1,14 +1,7 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Text,
-  View,
-  Image,
-  Animated,
+import { Text, View, Image, Animated } from "react-native";
 
-} from "react-native";
-
-import loader from "../../assets/empty.json"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { products } from "dummy";
 import { IProduct } from "types/product";
@@ -38,7 +31,6 @@ function Content() {
       if (response.data) {
         const transformedProducts = asignProduct(response.data);
         setData(transformedProducts);
-       
       }
     } catch (error) {
       /**
@@ -47,7 +39,6 @@ function Content() {
        */
       const transformedProducts = asignProduct(products);
       setData(transformedProducts);
-   
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +79,6 @@ function Content() {
                   0,
                   itemheight * index,
                   itemheight * (index + 0.5),
-                 
                 ];
 
                 const opacityRange = [
@@ -96,7 +86,6 @@ function Content() {
                   0,
                   itemheight * index,
                   itemheight * (index + 0.5),
-                
                 ];
 
                 const scale = scrollY.interpolate({
